@@ -97,6 +97,8 @@ public class MazePanel extends JPanel {
         }
     }
 
+
+
     @Override
     public Dimension getPreferredSize() {
         if (maze == null) return new Dimension(300, 300);

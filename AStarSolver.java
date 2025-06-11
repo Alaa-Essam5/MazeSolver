@@ -50,6 +50,7 @@ public class AStarSolver extends MazeSolver {
         PriorityQueue<Node> openSet = new PriorityQueue<>();
         Map<Point, Node> allNodes = new HashMap<>();
 
+
         Node startNode = new Node(maze.getStartPos().x, maze.getStartPos().y,
                 null, 0, heuristic(maze.getStartPos().x, maze.getStartPos().y));
         openSet.add(startNode);

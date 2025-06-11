@@ -9,6 +9,7 @@ public abstract class MazeSolver {
     protected int penaltySteps;
     protected String algorithmName;
 
+
     public MazeSolver(Maze maze) {
         this.maze = maze;
         this.visited = new boolean[maze.getRows()][maze.getCols()];

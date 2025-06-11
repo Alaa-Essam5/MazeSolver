@@ -200,6 +200,7 @@ public class MazeSolverVisualizer {
                                 "Visited cells: " + countVisitedCells(solver.getVisited()));
                     }
 
+
                     setButtonsEnabled(true);
                     pauseButton.setEnabled(false);
                     stepButton.setEnabled(false);
