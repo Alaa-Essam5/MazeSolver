@@ -199,6 +199,7 @@ public class MazeSolverVisualizer {
                                 "Time taken: " + timeTaken + "ms\n" +
                                 "Visited cells: " + countVisitedCells(solver.getVisited()));
                     }
+
                     setButtonsEnabled(true);
                     pauseButton.setEnabled(false);
                     stepButton.setEnabled(false);
