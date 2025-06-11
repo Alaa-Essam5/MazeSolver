@@ -3,137 +3,103 @@ import java.awt.*;
 import java.util.List;
 
 public class MazePanel extends JPanel {
-    private static final Color WHITE = Color.WHITE;
-    private static final Color BLACK = Color.BLACK;
-    private static final Color RED = Color.RED;
-    private static final Color GREEN = Color.GREEN;
-    private static final Color BLUE = Color.BLUE;
-    private static final Color YELLOW = Color.YELLOW;
-    private static final Color TELEPORT_COLOR = new Color(0, 255, 255); // Cyan
-    private static final Color PENALTY_COLOR = new Color(255, 192, 203); // Pink
-    private static final Color A_STAR_COLOR = new Color(0, 128, 128); // Teal
-    private static final Color DIJKSTRA_COLOR = new Color(255, 165, 0); // Orange
-    private static final Color GRAY = new Color(200, 200, 200);
-
+    protected int cellSize = 30;
     private Maze maze;
     private boolean[][] visited;
     private List<Point> path;
-    private String currentAlgorithm;
-    public int cellSize = 30;
+    private String algorithm;
 
-    public void setMazeData(Maze maze, boolean[][] visited, List<Point> path, String currentAlgorithm) {
+    public void setMazeData(Maze maze, boolean[][] visited, List<Point> path, String algorithm) {
         this.maze = maze;
         this.visited = visited;
         this.path = path;
-        this.currentAlgorithm = currentAlgorithm;
+        this.algorithm = algorithm;
     }
 
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
 
-        if (maze == null || maze.getMaze() == null) return;
+        if (maze == null) return;
 
-        // Add bounds checking
-        int rows = maze.getRows();
-        int cols = maze.getCols();
-
-        for (int y = 0; y < rows; y++) {
-            for (int x = 0; x < cols; x++) {
-                // Skip if coordinates are out of bounds
-                if (y < 0 || y >= rows || x < 0 || x >= cols) {
-                    continue;
-                }
-
-                Color color = WHITE;
-                char cell = maze.getMaze()[y][x];
-
-                if (cell == Maze.WALL) {
-                    color = BLACK;
-                } else if (cell == Maze.START) {
-                    color = GREEN;
-                } else if (cell == Maze.END) {
-                    color = RED;
-                } else if (cell == Maze.TELEPORT) {
-                    color = TELEPORT_COLOR;
-                } else if (cell == Maze.PENALTY) {
-                    color = PENALTY_COLOR;
-                }
-
+        for (int y = 0; y < maze.getRows(); y++) {
+            for (int x = 0; x < maze.getCols(); x++) {
                 // Draw cell background
+                char cell = maze.getMaze()[y][x];
+                Color color = getCellColor(cell);
                 g.setColor(color);
                 g.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
 
-                // Draw visited cells - add null check for visited array
-                if (visited != null && y < visited.length && x < visited[y].length &&
-                        visited[y][x] && cell != Maze.START && cell != Maze.END &&
-                        cell != Maze.TELEPORT && cell != Maze.PENALTY) {
-                    g.setColor(GRAY);
+                // Draw visited cells
+                if (visited != null && visited[y][x] && !isSpecialCell(cell)) {
+                    g.setColor(new Color(200, 200, 200, 150));
                     g.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
                 }
 
-                // Draw path - add null check for path
-                if (path != null && path.contains(new Point(x, y)) &&
-                        cell != Maze.START && cell != Maze.END) {
-                    Color pathColor = BLUE;
-                    if ("A*".equals(currentAlgorithm)) {
-                        pathColor = A_STAR_COLOR;
-                    } else if ("Dijkstra".equals(currentAlgorithm)) {
-                        pathColor = DIJKSTRA_COLOR;
-                    }
-                    g.setColor(pathColor);
+                // Draw path
+                if (path != null && path.contains(new Point(x, y)) && !isSpecialCell(cell)) {
+                    g.setColor(getPathColor());
                     g.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
                 }
 
-                // Draw grid
+                // Draw cell border
                 g.setColor(Color.LIGHT_GRAY);
                 g.drawRect(x * cellSize, y * cellSize, cellSize, cellSize);
+
+                // Draw cell label
+                drawCellLabel(g, x, y, cell);
             }
         }
 
-        // Draw labels - add null checks
-        if (maze.getStartPos() != null) {
-            g.setColor(Color.BLACK);
-            g.drawString("S", maze.getStartPos().x * cellSize + cellSize/2 - 3,
-                    maze.getStartPos().y * cellSize + cellSize/2 + 5);
-        }
-        if (maze.getEndPos() != null) {
-            g.setColor(Color.BLACK);
-            g.drawString("E", maze.getEndPos().x * cellSize + cellSize/2 - 3,
-                    maze.getEndPos().y * cellSize + cellSize/2 + 5);
-        }
-
-        if (maze.getTeleportPositions() != null) {
-            for (Point tp : maze.getTeleportPositions()) {
-                if (tp != null) {
-                    g.setColor(Color.BLACK);
-                    g.drawString("T", tp.x * cellSize + cellSize/2 - 3, tp.y * cellSize + cellSize/2 + 5);
-                }
-            }
-        }
-
-        if (maze.getPenaltyPositions() != null) {
-            for (Point pp : maze.getPenaltyPositions()) {
-                if (pp != null) {
-                    g.setColor(Color.BLACK);
-                    g.drawString("P", pp.x * cellSize + cellSize/2 - 3, pp.y * cellSize + cellSize/2 + 5);
-                }
-            }
-        }
-
-        // Draw current position if in wall follower algorithms
-        if (path != null && !path.isEmpty() &&
-                ("LeftHand".equals(currentAlgorithm) || "RightHand".equals(currentAlgorithm))) {
+        // Draw current position for wall followers
+        if (algorithm != null && (algorithm.equals("LeftHand") || algorithm.equals("RightHand")) && path != null && !path.isEmpty()) {
             Point current = path.get(path.size() - 1);
-            if (current != null) {
-                g.setColor(YELLOW);
-                g.fillOval(current.x * cellSize + cellSize/4, current.y * cellSize + cellSize/4,
-                        cellSize/2, cellSize/2);
-            }
+            g.setColor(Color.YELLOW);
+            g.fillOval(current.x * cellSize + cellSize/4, current.y * cellSize + cellSize/4,
+                    cellSize/2, cellSize/2);
         }
     }
 
-    public void setCellSize(int cellSize) {
-        this.cellSize = cellSize;
+    private Color getCellColor(char cell) {
+        switch (cell) {
+            case Maze.WALL: return Color.BLACK;
+            case Maze.START: return Color.GREEN;
+            case Maze.END: return Color.RED;
+            case Maze.TELEPORT: return new Color(0, 255, 255); // Cyan for teleport
+            case Maze.PENALTY: return new Color(255, 192, 203); // Pink for penalty
+            default: return Color.WHITE;
+        }
+    }
+
+    private Color getPathColor() {
+        if (algorithm == null) return Color.BLUE;
+        switch (algorithm) {
+            case "A*": return new Color(0, 128, 128); // Teal
+            case "Dijkstra": return new Color(255, 165, 0); // Orange
+            default: return Color.BLUE;
+        }
+    }
+
+    private boolean isSpecialCell(char cell) {
+        return cell == Maze.START || cell == Maze.END || cell == Maze.TELEPORT || cell == Maze.PENALTY;
+    }
+
+    private void drawCellLabel(Graphics g, int x, int y, char cell) {
+        g.setColor(Color.BLACK);
+        String label = "";
+        if (cell == Maze.START) label = "S";
+        else if (cell == Maze.END) label = "E";
+        else if (cell == Maze.TELEPORT) label = "T";
+        else if (cell == Maze.PENALTY) label = "P";
+
+        if (!label.isEmpty()) {
+            g.drawString(label, x * cellSize + cellSize/2 - 3, y * cellSize + cellSize/2 + 5);
+        }
+    }
+
+    @Override
+    public Dimension getPreferredSize() {
+        if (maze == null) return new Dimension(300, 300);
+        return new Dimension(maze.getCols() * cellSize, maze.getRows() * cellSize);
     }
 }
