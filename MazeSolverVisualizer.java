@@ -6,74 +6,81 @@ import java.util.*;
 import java.util.List;
 
 public class MazeSolverVisualizer {
+    // Maze object to store the maze structure
     private Maze maze = new Maze();
-    private MazePanel mazePanel;
-    private JTextArea infoArea;
-    private String currentAlgorithm = "DFS";
-    private long visualizationDelay = 50; // ms
-    private boolean isPaused = false;
-    private boolean isRunning = false;
+    private MazePanel mazePanel; // Panel to visualize the maze
+    private JTextArea infoArea; // Area to display information and messages
+    private String currentAlgorithm = "DFS"; // Default algorithm
+    private long visualizationDelay = 50; // Delay in milliseconds between visual steps
+    private boolean isPaused = false; // Flag to pause/resume visualization
+    private boolean isRunning = false; // Flag to prevent multiple runs at once
 
-    private JFrame frame;
-    private JButton dfsButton, bfsButton, aStarButton, dijkstraButton;
-    private JButton leftHandButton, rightHandButton, deadEndButton, compareButton, loadButton;
-    private JButton pauseButton, stepButton;
+    private JFrame frame; // Main window
+    private JButton dfsButton, bfsButton, aStarButton, dijkstraButton; // Algorithm buttons
+    private JButton leftHandButton, rightHandButton, deadEndButton, compareButton, loadButton; // Other control buttons
+    private JButton pauseButton, stepButton; // Pause and Step controls
 
     public MazeSolverVisualizer() {
-        initializeGUI();
+        initializeGUI(); // Set up GUI when object is created
     }
 
+    // Initialize all GUI components
     private void initializeGUI() {
-        frame = new JFrame("Advanced Maze Solver Visualizer");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setLayout(new BorderLayout());
+        frame = new JFrame("Advanced Maze Solver Visualizer"); // Window title
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // Exit app when window closes
+        frame.setLayout(new BorderLayout()); // Use border layout
 
-        mazePanel = new MazePanel();
-        frame.add(mazePanel, BorderLayout.CENTER);
+        mazePanel = new MazePanel(); // Create maze drawing panel
+        frame.add(mazePanel, BorderLayout.CENTER); // Add maze panel to center of window
 
-        // Control panel
+        // Create control panel with grid layout: 3 rows (for 3 sets of buttons)
         JPanel controlPanel = new JPanel(new GridLayout(3, 1));
         JPanel buttonPanel1 = new JPanel();
         JPanel buttonPanel2 = new JPanel();
         JPanel buttonPanel3 = new JPanel();
 
-        // Create buttons
-        createButtons();
+        createButtons(); // Set up all buttons and their actions
 
-        // Add buttons to panels
+        // Add algorithm buttons and load button to first row
         buttonPanel1.add(loadButton);
         buttonPanel1.add(dfsButton);
         buttonPanel1.add(bfsButton);
         buttonPanel1.add(aStarButton);
         buttonPanel1.add(dijkstraButton);
 
+        // Add other solving strategies to second row
         buttonPanel2.add(leftHandButton);
         buttonPanel2.add(rightHandButton);
         buttonPanel2.add(deadEndButton);
         buttonPanel2.add(compareButton);
 
+        // Add pause and step buttons to third row
         buttonPanel3.add(pauseButton);
         buttonPanel3.add(stepButton);
 
+        // Add button panels to the main control panel
         controlPanel.add(buttonPanel1);
         controlPanel.add(buttonPanel2);
         controlPanel.add(buttonPanel3);
 
-        // Info panel
+        // Info text area to display results and messages
         infoArea = new JTextArea(5, 40);
         infoArea.setEditable(false);
-        JScrollPane infoScrollPane = new JScrollPane(infoArea);
+        JScrollPane infoScrollPane = new JScrollPane(infoArea); // Add scroll in case of long output
 
+        // Bottom panel holds control buttons and info area
         JPanel bottomPanel = new JPanel(new BorderLayout());
         bottomPanel.add(controlPanel, BorderLayout.NORTH);
         bottomPanel.add(infoScrollPane, BorderLayout.CENTER);
 
-        frame.add(bottomPanel, BorderLayout.SOUTH);
-        frame.pack();
-        frame.setLocationRelativeTo(null);
-        frame.setVisible(true);
+        frame.add(bottomPanel, BorderLayout.SOUTH); // Add the bottom panel to the window
+
+        frame.pack(); // Resize window to fit components
+        frame.setLocationRelativeTo(null); // Center window on screen
+        frame.setVisible(true); // Make the window visible
     }
 
+    // Create all control buttons and assign actions
     private void createButtons() {
         loadButton = new JButton("Load Maze");
         loadButton.addActionListener(e -> loadMazeFile());
@@ -103,34 +110,35 @@ public class MazeSolverVisualizer {
         compareButton.addActionListener(e -> compareAlgorithms());
 
         pauseButton = new JButton("Pause");
-        pauseButton.setEnabled(false);
+        pauseButton.setEnabled(false); // Initially disabled
         pauseButton.addActionListener(e -> togglePause());
 
         stepButton = new JButton("Step");
-        stepButton.setEnabled(false);
+        stepButton.setEnabled(false); // Initially disabled
         stepButton.addActionListener(e -> step());
     }
 
+    // Load maze from file using file chooser
     private void loadMazeFile() {
         if (isRunning) {
             infoArea.setText("Please wait for current operation to finish");
             return;
         }
 
-        JFileChooser fileChooser = new JFileChooser();
+        JFileChooser fileChooser = new JFileChooser(); // Dialog to choose file
         int returnValue = fileChooser.showOpenDialog(frame);
         if (returnValue == JFileChooser.APPROVE_OPTION) {
             File selectedFile = fileChooser.getSelectedFile();
             try {
-                maze.loadMaze(selectedFile);
+                maze.loadMaze(selectedFile); // Parse and load the maze file
                 mazePanel.setPreferredSize(new Dimension(maze.getCols() * mazePanel.cellSize,
-                        maze.getRows() * mazePanel.cellSize));
+                        maze.getRows() * mazePanel.cellSize)); // Resize panel to fit maze
 
                 mazePanel.setMazeData(maze, new boolean[maze.getRows()][maze.getCols()],
-                        new ArrayList<>(), "Maze");
+                        new ArrayList<>(), "Maze"); // Reset maze panel
                 mazePanel.repaint();
 
-                frame.pack();
+                frame.pack(); // Resize frame
                 infoArea.setText("Maze loaded successfully.\nStart: " + maze.getStartPos() +
                         ", End: " + maze.getEndPos() +
                         "\nSize: " + maze.getRows() + "x" + maze.getCols());
@@ -140,6 +148,7 @@ public class MazeSolverVisualizer {
         }
     }
 
+    // Run the selected algorithm in a new thread
     private void runAlgorithm(String algorithm) {
         if (isRunning) {
             infoArea.setText("Already running an algorithm. Please wait or pause.");
@@ -152,62 +161,67 @@ public class MazeSolverVisualizer {
         }
 
         currentAlgorithm = algorithm;
-        setButtonsEnabled(false);
-        pauseButton.setEnabled(true);
+        setButtonsEnabled(false); // Disable all buttons during run
+        pauseButton.setEnabled(true); // Enable pause
         isRunning = true;
 
+        // Start algorithm execution in a separate thread
         new Thread(() -> {
             try {
-                MazeSolver solver = createSolver(algorithm);
+                MazeSolver solver = createSolver(algorithm); // Create appropriate solver
                 if (solver == null) return;
 
+                // Reset visualization
                 mazePanel.setMazeData(maze, new boolean[maze.getRows()][maze.getCols()],
                         new ArrayList<>(), algorithm);
                 mazePanel.repaint();
 
-                long startTime = System.currentTimeMillis();
+                long startTime = System.currentTimeMillis(); // Start timer
                 boolean success = false;
 
+                // Choose correct visualization method based on solver type
                 if (solver instanceof DFSSolver) {
-                    success = runDFSWithVisualization((DFSSolver)solver);
+                    success = runDFSWithVisualization((DFSSolver) solver);
                 } else if (solver instanceof BFSSolver) {
-                    success = runBFSWithVisualization((BFSSolver)solver);
+                    success = runBFSWithVisualization((BFSSolver) solver);
                 } else if (solver instanceof AStarSolver) {
-                    success = runAStarWithVisualization((AStarSolver)solver);
+                    success = runAStarWithVisualization((AStarSolver) solver);
                 } else if (solver instanceof DijkstraSolver) {
-                    success = runDijkstraWithVisualization((DijkstraSolver)solver);
+                    success = runDijkstraWithVisualization((DijkstraSolver) solver);
                 } else if (solver instanceof WallFollowerSolver) {
-                    success = runWallFollowerWithVisualization((WallFollowerSolver)solver);
+                    success = runWallFollowerWithVisualization((WallFollowerSolver) solver);
                 } else if (solver instanceof DeadEndFillingSolver) {
-                    success = runDeadEndFillingWithVisualization((DeadEndFillingSolver)solver);
+                    success = runDeadEndFillingWithVisualization((DeadEndFillingSolver) solver);
                 } else {
-                    success = solver.solve(true) != -1;
+                    success = solver.solve(true) != -1; // Fallback case
                 }
 
-                long timeTaken = System.currentTimeMillis() - startTime;
+                long timeTaken = System.currentTimeMillis() - startTime; // End timer
 
                 boolean finalSuccess = success;
+
+                // Update UI from the Swing thread
                 SwingUtilities.invokeLater(() -> {
                     if (finalSuccess) {
                         infoArea.setText(algorithm + " Results:\n" +
                                 "Path found in " + solver.getSteps() + " steps\n" +
                                 "Time taken: " + timeTaken + "ms\n" +
                                 "Path length: " + solver.getPath().size() + " cells\n" +
-                                "Visited cells: " + countVisitedCells(solver.getVisited()) );
+                                "Visited cells: " + countVisitedCells(solver.getVisited()));
                     } else {
                         infoArea.setText(algorithm + " found no path!\n" +
                                 "Time taken: " + timeTaken + "ms\n" +
                                 "Visited cells: " + countVisitedCells(solver.getVisited()));
                     }
 
-
-                    setButtonsEnabled(true);
+                    setButtonsEnabled(true); // Re-enable controls
                     pauseButton.setEnabled(false);
                     stepButton.setEnabled(false);
                     isRunning = false;
                     isPaused = false;
                 });
             } catch (Exception e) {
+                // Handle any runtime exceptions and update UI
                 SwingUtilities.invokeLater(() -> {
                     infoArea.setText("Error during " + algorithm + ": " + e.getMessage());
                     setButtonsEnabled(true);
@@ -220,70 +234,86 @@ public class MazeSolverVisualizer {
         }).start();
     }
 
+    // Counts how many cells in the 'visited' array are true (i.e., visited during the solving process)
     private int countVisitedCells(boolean[][] visited) {
         int count = 0;
         for (boolean[] row : visited) {
             for (boolean cell : row) {
-                if (cell) count++;
+                if (cell) count++; // If the cell is visited, increment the counter
             }
         }
         return count;
     }
 
+    // Creates an instance of the appropriate maze-solving algorithm based on user selection
     private MazeSolver createSolver(String algorithm) {
         switch (algorithm) {
-            case "DFS": return new DFSSolver(maze);
-            case "BFS": return new BFSSolver(maze);
-            case "A*": return new AStarSolver(maze);
-            case "Dijkstra": return new DijkstraSolver(maze);
-            case "LeftHand": return new WallFollowerSolver(maze, true);
-            case "RightHand": return new WallFollowerSolver(maze, false);
-            case "DeadEnd": return new DeadEndFillingSolver(maze);
-            default: return null;
+            case "DFS":
+                return new DFSSolver(maze);                 // Depth-First Search
+            case "BFS":
+                return new BFSSolver(maze);                 // Breadth-First Search
+            case "A*":
+                return new AStarSolver(maze);                // A* Search Algorithm
+            case "Dijkstra":
+                return new DijkstraSolver(maze);       // Dijkstra's Algorithm
+            case "LeftHand":
+                return new WallFollowerSolver(maze, true);  // Left-hand wall-following
+            case "RightHand":
+                return new WallFollowerSolver(maze, false); // Right-hand wall-following
+            case "DeadEnd":
+                return new DeadEndFillingSolver(maze);  // Dead-end filling method
+            default:
+                return null;                                   // If algorithm not recognized
         }
     }
 
+    // Toggles between paused and running states; updates button text accordingly
     private void togglePause() {
-        isPaused = !isPaused;
-        pauseButton.setText(isPaused ? "Resume" : "Pause");
-        stepButton.setEnabled(isPaused);
+        isPaused = !isPaused; // Flip the paused state
+        pauseButton.setText(isPaused ? "Resume" : "Pause"); // Change button text
+        stepButton.setEnabled(isPaused); // Enable the step button only when paused
     }
 
+    // If paused, this method will resume execution by notifying the waiting thread
     private void step() {
         if (isPaused) {
             synchronized (this) {
-                this.notify();
+                this.notify(); // Resume waiting thread
             }
         }
     }
 
+    // Causes the algorithm to pause at each step if 'isPaused' is true
     private void waitIfPaused() {
         if (isPaused) {
-            stepButton.setEnabled(true);
+            stepButton.setEnabled(true); // Allow stepping while paused
             synchronized (this) {
                 try {
-                    this.wait();
+                    this.wait(); // Wait until notified (via step or resume)
                 } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
+                    Thread.currentThread().interrupt(); // Handle interruption
                 }
             }
         }
     }
 
+    // Runs DFS algorithm with visualization enabled
     private boolean runDFSWithVisualization(DFSSolver solver) {
         Stack<DFSSolver.PathNode> stack = new Stack<>();
+        // Start with the maze's start position
         stack.push(new DFSSolver.PathNode(maze.getStartPos().x, maze.getStartPos().y, new ArrayList<>()));
 
         while (!stack.isEmpty()) {
-            waitIfPaused();
-            if (!isRunning) return false;
+            waitIfPaused(); // Check for pause
+            if (!isRunning) return false; // Exit if solving is stopped
 
-            DFSSolver.PathNode node = stack.pop();
+            DFSSolver.PathNode node = stack.pop(); // Get next node
             int x = node.x;
             int y = node.y;
 
-            updateVisualization(solver, x, y);
+            updateVisualization(solver, x, y); // Visual feedback on screen
 
+            // If we reached the end point, construct the final path
             if (x == maze.getEndPos().x && y == maze.getEndPos().y) {
                 solver.path = new ArrayList<>(node.path);
                 solver.path.add(new Point(x, y));
@@ -291,40 +321,46 @@ public class MazeSolverVisualizer {
                 return true;
             }
 
+            // If the cell has not been visited yet
             if (!solver.visited[y][x]) {
-                solver.visited[y][x] = true;
+                solver.visited[y][x] = true; // Mark cell as visited
                 List<Point> newPath = new ArrayList<>(node.path);
-                newPath.add(new Point(x, y));
+                newPath.add(new Point(x, y)); // Add current point to path
 
+                // Handle teleportation or special tiles
                 Point teleportPos = solver.handleSpecialTile(x, y);
                 if (teleportPos != null) {
                     stack.push(new DFSSolver.PathNode(teleportPos.x, teleportPos.y, newPath));
-                    continue;
+                    continue; // Skip normal neighbors if teleport used
                 }
 
+                // Explore all unvisited neighbors by pushing them onto the stack
                 for (Point neighbor : maze.getNeighbors(x, y, solver.visited)) {
                     stack.push(new DFSSolver.PathNode(neighbor.x, neighbor.y, newPath));
                 }
             }
         }
-        return false;
+        return false; // No path found
     }
 
+    // Runs BFS algorithm with visualization enabled
     private boolean runBFSWithVisualization(BFSSolver solver) {
         Queue<BFSSolver.PathNode> queue = new LinkedList<>();
+        // Start with the start position and mark it visited
         queue.add(new BFSSolver.PathNode(maze.getStartPos().x, maze.getStartPos().y, new ArrayList<>()));
         solver.visited[maze.getStartPos().y][maze.getStartPos().x] = true;
 
         while (!queue.isEmpty()) {
-            waitIfPaused();
-            if (!isRunning) return false;
+            waitIfPaused(); // Check for pause
+            if (!isRunning) return false; // Exit if solving is stopped
 
-            BFSSolver.PathNode node = queue.poll();
+            BFSSolver.PathNode node = queue.poll(); // Get next node
             int x = node.x;
             int y = node.y;
 
-            updateVisualization(solver, x, y);
+            updateVisualization(solver, x, y); // Show current cell
 
+            // If reached the end, construct the path
             if (x == maze.getEndPos().x && y == maze.getEndPos().y) {
                 solver.path = new ArrayList<>(node.path);
                 solver.path.add(new Point(x, y));
@@ -335,13 +371,15 @@ public class MazeSolverVisualizer {
             List<Point> newPath = new ArrayList<>(node.path);
             newPath.add(new Point(x, y));
 
+            // Handle teleportation or special tiles
             Point teleportPos = solver.handleSpecialTile(x, y);
             if (teleportPos != null && !solver.visited[teleportPos.y][teleportPos.x]) {
                 solver.visited[teleportPos.y][teleportPos.x] = true;
                 queue.add(new BFSSolver.PathNode(teleportPos.x, teleportPos.y, newPath));
-                continue;
+                continue; // Skip regular neighbors
             }
 
+            // Visit all unvisited neighbors
             for (Point neighbor : maze.getNeighbors(x, y, solver.visited)) {
                 if (!solver.visited[neighbor.y][neighbor.x]) {
                     solver.visited[neighbor.y][neighbor.x] = true;
@@ -349,11 +387,13 @@ public class MazeSolverVisualizer {
                 }
             }
         }
-        return false;
+        return false; // No path found
     }
 
+    // Runs A* algorithm with visualization enabled
     private boolean runAStarWithVisualization(AStarSolver solver) {
         PriorityQueue<AStarSolver.Node> openSet = new PriorityQueue<>();
+        // Start with the starting point and its heuristic
         openSet.add(new AStarSolver.Node(
                 maze.getStartPos().x,
                 maze.getStartPos().y,
@@ -363,25 +403,28 @@ public class MazeSolverVisualizer {
         ));
 
         while (!openSet.isEmpty()) {
-            waitIfPaused();
+            waitIfPaused(); // Pause check
             if (!isRunning) return false;
 
-            AStarSolver.Node current = openSet.poll();
+            AStarSolver.Node current = openSet.poll(); // Get node with lowest f = g + h
             int x = current.x;
             int y = current.y;
 
-            solver.currentNode = current;
-            updateVisualization(solver, x, y);
+            solver.currentNode = current; // Track current node for visualization
+            updateVisualization(solver, x, y); // Display step
 
+            // If reached goal, reconstruct path
             if (x == maze.getEndPos().x && y == maze.getEndPos().y) {
                 solver.path = solver.reconstructPath(current);
                 solver.steps = solver.path.size() - 1 + solver.penaltySteps;
                 return true;
             }
 
+            // Skip already visited cells
             if (solver.visited[y][x]) continue;
             solver.visited[y][x] = true;
 
+            // Handle teleportation
             Point teleportPos = solver.handleSpecialTile(x, y);
             if (teleportPos != null) {
                 double newG = current.g + 1;
@@ -393,9 +436,10 @@ public class MazeSolverVisualizer {
                         newG,
                         newH
                 ));
-                continue;
+                continue; // Skip normal neighbors
             }
 
+            // Add all neighbors with updated cost and heuristic to the priority queue
             for (Point neighbor : maze.getNeighbors(x, y, solver.visited)) {
                 double newG = current.g + 1;
                 double newH = heuristic(neighbor.x, neighbor.y);
@@ -408,115 +452,136 @@ public class MazeSolverVisualizer {
                 ));
             }
         }
-        return false;
+        return false; // No path found
     }
 
+    // Runs Dijkstra's algorithm with visual feedback
     private boolean runDijkstraWithVisualization(DijkstraSolver solver) {
+        // Initialize priority queue with the start node (x, y, distance = 0, no parent)
         PriorityQueue<DijkstraSolver.Node> queue = new PriorityQueue<>();
         queue.add(new DijkstraSolver.Node(maze.getStartPos().x, maze.getStartPos().y, 0, null));
 
+        // Loop until there are no more nodes to explore
         while (!queue.isEmpty()) {
-            waitIfPaused();
-            if (!isRunning) return false;
+            waitIfPaused(); // Wait if visualization is paused
+            if (!isRunning) return false; // Stop if the algorithm is canceled
 
+            // Retrieve node with lowest cost (priority)
             DijkstraSolver.Node current = queue.poll();
             int x = current.x;
             int y = current.y;
 
+            // Set current node for tracking and update visualization
             solver.currentNode = current;
             updateVisualization(solver, x, y);
 
+            // Check if we have reached the end of the maze
             if (x == maze.getEndPos().x && y == maze.getEndPos().y) {
-                solver.path = solver.reconstructPath(current);
-                solver.steps = solver.path.size() - 1 + solver.penaltySteps;
-                return true;
+                solver.path = solver.reconstructPath(current); // Build final path
+                solver.steps = solver.path.size() - 1 + solver.penaltySteps; // Calculate steps
+                return true; // Algorithm finished successfully
             }
 
+            // Skip if already visited
             if (solver.visited[y][x]) continue;
-            solver.visited[y][x] = true;
+            solver.visited[y][x] = true; // Mark as visited
 
+            // Handle teleport tiles if any, jump to teleport destination
             Point teleportPos = solver.handleSpecialTile(x, y);
             if (teleportPos != null) {
                 queue.add(new DijkstraSolver.Node(teleportPos.x, teleportPos.y, current.distance + 1, current));
                 continue;
             }
 
+            // Add all valid neighboring cells to the queue
             for (Point neighbor : maze.getNeighbors(x, y, solver.visited)) {
                 queue.add(new DijkstraSolver.Node(neighbor.x, neighbor.y, current.distance + 1, current));
             }
         }
-        return false;
+        return false; // No path found
     }
 
+    // Runs the Wall Follower algorithm (left-hand or right-hand rule) with visualization
     private boolean runWallFollowerWithVisualization(WallFollowerSolver solver) {
         int x = maze.getStartPos().x;
         int y = maze.getStartPos().y;
-        List<Point> path = new ArrayList<>();
+        List<Point> path = new ArrayList<>(); // Store the path
 
         while (true) {
-            waitIfPaused();
+            waitIfPaused(); // Pause handling
             if (!isRunning) return false;
 
-            updateVisualization(solver, x, y);
-            path.add(new Point(x, y));
+            updateVisualization(solver, x, y); // Visual feedback
+            path.add(new Point(x, y)); // Add current position to path
 
+            // Check if goal is reached
             if (x == maze.getEndPos().x && y == maze.getEndPos().y) {
                 solver.path = path;
                 solver.steps = path.size() - 1 + solver.penaltySteps;
                 return true;
             }
 
-            Point next = solver.getNextPosition(x, y);
-            if (next == null) break;
+            // Determine the next position to move
+            Point next = solver.findNextMove(x, y);
+            if (next == null) break; // No valid moves (maze trapped or done)
 
             x = next.x;
             y = next.y;
         }
-        return false;
+        return false; // Algorithm failed or got stuck
     }
 
+    // Runs Dead-End Filling algorithm with visualization
     private boolean runDeadEndFillingWithVisualization(DeadEndFillingSolver solver) {
-        solver.solve(false);
+        solver.solve(false); // Execute the algorithm without visualization
 
+        // Update the maze panel on the GUI thread with the visited path and solution
         SwingUtilities.invokeLater(() -> {
             mazePanel.setMazeData(maze, solver.getVisited(), solver.getPath(), currentAlgorithm);
-            mazePanel.repaint();
+            mazePanel.repaint(); // Redraw the maze panel
         });
 
+        // Return true if a valid path is found
         return solver.getPath() != null && !solver.getPath().isEmpty();
     }
 
+    // Handles the visual update of the maze during an algorithm run
     private void updateVisualization(MazeSolver solver, int x, int y) {
         SwingUtilities.invokeLater(() -> {
             List<Point> currentPath = new ArrayList<>();
 
+            // Get current path depending on the solver type
             if (solver instanceof AStarSolver) {
-                currentPath = ((AStarSolver)solver).getCurrentPath();
+                currentPath = ((AStarSolver) solver).getCurrentPath();
             } else if (solver instanceof DijkstraSolver) {
-                currentPath = ((DijkstraSolver)solver).getCurrentPath();
+                currentPath = ((DijkstraSolver) solver).getCurrentPath();
             } else if (solver.getPath() != null) {
                 currentPath = new ArrayList<>(solver.getPath());
             }
 
+            // Add current position to the path if it's valid
             if (x != -1 && y != -1) {
                 currentPath.add(new Point(x, y));
             }
 
+            // Update and repaint the maze with the current path and visited nodes
             mazePanel.setMazeData(maze, solver.getVisited(), currentPath, currentAlgorithm);
             mazePanel.repaint();
         });
 
         try {
-            Thread.sleep(visualizationDelay);
+            Thread.sleep(visualizationDelay); // Wait for delay between steps
         } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
+            Thread.currentThread().interrupt(); // Handle interruption safely
         }
     }
 
+    // Manhattan distance heuristic used by A* algorithm
     private double heuristic(int x, int y) {
         return Math.abs(x - maze.getEndPos().x) + Math.abs(y - maze.getEndPos().y);
     }
 
+    // Runs all algorithms several times and compares their performance
     private void compareAlgorithms() {
         if (isRunning) {
             infoArea.setText("Already running an algorithm. Please wait.");
@@ -528,9 +593,10 @@ public class MazeSolverVisualizer {
             return;
         }
 
-        setButtonsEnabled(false);
+        setButtonsEnabled(false); // Disable UI buttons
         isRunning = true;
 
+        // Start new thread for comparison to avoid freezing the UI
         new Thread(() -> {
             String[] algorithms = {"DFS", "BFS", "A*", "Dijkstra", "LeftHand", "RightHand", "DeadEnd"};
             Map<String, Double> avgTimes = new HashMap<>();
@@ -538,7 +604,8 @@ public class MazeSolverVisualizer {
             Map<String, Double> avgPathLengths = new HashMap<>();
             Map<String, Double> avgVisitedCells = new HashMap<>();
 
-            int numRuns = 5;
+            int numRuns = 5; // Number of repetitions per algorithm
+
             for (String algo : algorithms) {
                 long totalTime = 0;
                 long totalSteps = 0;
@@ -547,9 +614,10 @@ public class MazeSolverVisualizer {
                 int successfulRuns = 0;
 
                 for (int i = 0; i < numRuns; i++) {
-                    MazeSolver solver = createSolver(algo);
-                    long timeTaken = solver.solve(false);
-                    if (timeTaken != -1) {
+                    MazeSolver solver = createSolver(algo); // Instantiate solver based on algorithm
+                    long timeTaken = solver.solve(false); // Run solver (no visualization)
+
+                    if (timeTaken != -1) { // Check if solver succeeded
                         totalTime += timeTaken;
                         totalSteps += solver.getSteps();
                         totalPathLength += solver.getPath().size();
@@ -558,6 +626,7 @@ public class MazeSolverVisualizer {
                     }
                 }
 
+                // Store averages or mark as -1 if all runs failed
                 if (successfulRuns > 0) {
                     avgTimes.put(algo, (double) totalTime / successfulRuns);
                     avgSteps.put(algo, (double) totalSteps / successfulRuns);
@@ -571,52 +640,72 @@ public class MazeSolverVisualizer {
                 }
             }
 
+            // Display results and re-enable UI buttons
             SwingUtilities.invokeLater(() -> {
                 showComparisonResults(algorithms, avgTimes, avgSteps, avgPathLengths, avgVisitedCells, numRuns);
                 setButtonsEnabled(true);
                 isRunning = false;
             });
-        }).start();
+        }).start(); // Start background thread
     }
 
+
+    // This method displays the results of algorithm comparisons in a textual format
     private void showComparisonResults(String[] algorithms, Map<String, Double> avgTimes,
                                        Map<String, Double> avgSteps, Map<String, Double> avgPathLengths,
                                        Map<String, Double> avgVisitedCells, int numRuns) {
+        // StringBuilder to construct the text output
         StringBuilder comparisonText = new StringBuilder();
+
+        // Add header information showing number of runs used in averaging
         comparisonText.append(String.format("Algorithm Comparison (averaged over %d runs):\n", numRuns));
         comparisonText.append("Algorithm\tTime(ms)\tSteps\tPathLen\tVisited\n");
         comparisonText.append("------------------------------------------------\n");
 
+        // Loop over all algorithms and append their performance metrics
         for (String algo : algorithms) {
             comparisonText.append(String.format("%-8s\t%8.1f\t%5.1f\t%5.1f\t%5.1f\n",
                     algo, avgTimes.get(algo), avgSteps.get(algo),
                     avgPathLengths.get(algo), avgVisitedCells.get(algo)));
         }
 
+        // Display the textual data in the infoArea (a JTextArea)
         infoArea.setText(comparisonText.toString());
+
+        // Also show the data visually in a bar chart format
         showComparisonChart(avgTimes, avgSteps, avgPathLengths, avgVisitedCells);
     }
 
+    // This method displays four different charts to compare algorithm performance
     private void showComparisonChart(Map<String, Double> avgTimes, Map<String, Double> avgSteps,
                                      Map<String, Double> avgPathLengths, Map<String, Double> avgVisitedCells) {
+        // Create a new JFrame to hold the charts
         JFrame chartFrame = new JFrame("Algorithm Comparison");
+
+        // Set dimensions and layout of the frame: 2 rows, 2 columns of charts
         chartFrame.setSize(1200, 600);
         chartFrame.setLayout(new GridLayout(2, 2));
 
+        // Create four chart panels for different metrics
         JPanel timePanel = createChartPanel("Time (ms)", avgTimes, Color.BLUE);
         JPanel stepsPanel = createChartPanel("Steps", avgSteps, Color.GREEN);
         JPanel pathPanel = createChartPanel("Path Length", avgPathLengths, Color.RED);
         JPanel visitedPanel = createChartPanel("Visited Cells", avgVisitedCells, Color.ORANGE);
 
+        // Add the panels to the frame
         chartFrame.add(timePanel);
         chartFrame.add(stepsPanel);
         chartFrame.add(pathPanel);
         chartFrame.add(visitedPanel);
+
+        // Center the chart frame on screen and make it visible
         chartFrame.setLocationRelativeTo(frame);
         chartFrame.setVisible(true);
     }
 
+    // This method creates a JPanel with a custom chart for a single metric
     private JPanel createChartPanel(String title, Map<String, Double> values, Color color) {
+        // Create an anonymous JPanel with overridden paintComponent to draw the bar chart
         JPanel panel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
@@ -624,49 +713,62 @@ public class MazeSolverVisualizer {
                 drawBarChart(g, this, title, values, color);
             }
         };
+
+        // Set a border with the chart title
         panel.setBorder(BorderFactory.createTitledBorder(title));
         return panel;
     }
 
+    // This method draws a single bar chart inside the provided JPanel
     private void drawBarChart(Graphics g, JPanel panel, String title, Map<String, Double> values, Color baseColor) {
+        // Get width and height of the panel
         int width = panel.getWidth();
         int height = panel.getHeight();
+
+        // Define padding and spacing for layout
         int padding = 60;
         int barWidth = 40;
         int spacing = 20;
 
+        // Find the maximum value in the data to normalize bar heights
         double maxValue = values.values().stream()
                 .filter(v -> v >= 0)
                 .max(Double::compare)
-                .orElse(1.0) * 1.2;
+                .orElse(1.0) * 1.2; // Add 20% padding to top
 
-        // Draw axes
-        g.drawLine(padding, height - padding, width - padding, height - padding);
-        g.drawLine(padding, height - padding, padding, padding);
+        // Draw x and y axes
+        g.drawLine(padding, height - padding, width - padding, height - padding); // X-axis
+        g.drawLine(padding, height - padding, padding, padding); // Y-axis
 
-        // Draw title
+        // Draw title above chart
         g.drawString(title, width / 2 - 30, padding / 2);
 
+        // Algorithms in order to display
         int colorIndex = 0;
         String[] algorithms = {"DFS", "BFS", "A*", "Dijkstra", "LeftHand", "RightHand", "DeadEnd"};
 
         int xPos = padding + spacing;
+
+        // Loop through each algorithm and draw its bar
         for (String algo : algorithms) {
             double value = values.get(algo);
-            if (value < 0) continue; // Skip failed algorithms
+            if (value < 0) continue; // Skip if failed to run
 
-            // Create a slightly different shade for each bar
+            // Change bar color slightly for each algorithm
             Color barColor = new Color(
                     Math.min(255, baseColor.getRed() + colorIndex * 30),
                     Math.min(255, baseColor.getGreen() + colorIndex * 30),
                     Math.min(255, baseColor.getBlue() + colorIndex * 30)
             );
 
-            int barHeight = (int)((value / maxValue) * (height - 2 * padding));
+            // Calculate height of the bar
+            int barHeight = (int) ((value / maxValue) * (height - 2 * padding));
 
+            // Draw the bar
             g.setColor(barColor);
             g.fillRect(xPos, height - padding - barHeight, barWidth, barHeight);
 
+            // Draw value label and algorithm label under each bar
             g.setColor(Color.BLACK);
             g.drawString(String.format("%.1f", value), xPos, height - padding - barHeight - 5);
             g.drawString(algo, xPos, height - padding + 15);
@@ -675,14 +777,15 @@ public class MazeSolverVisualizer {
             colorIndex++;
         }
 
-        // Draw y-axis labels
+        // Draw labels on the y-axis (5 intervals)
         for (int i = 0; i <= 5; i++) {
             int y = height - padding - (i * (height - 2 * padding) / 5);
             g.drawString(String.format("%.0f", maxValue * i / 5), padding - 30, y + 5);
-            g.drawLine(padding - 5, y, padding, y);
+            g.drawLine(padding - 5, y, padding, y); // tick mark
         }
     }
 
+    // This method enables or disables all control buttons based on the state
     private void setButtonsEnabled(boolean enabled) {
         dfsButton.setEnabled(enabled);
         bfsButton.setEnabled(enabled);
@@ -695,19 +798,22 @@ public class MazeSolverVisualizer {
         loadButton.setEnabled(enabled);
     }
 
+    // Main method to launch the Maze Solver Visualizer GUI
     public static void main(String[] args) {
+        // Run GUI creation on the Swing event dispatch thread
         SwingUtilities.invokeLater(() -> {
             try {
+                // Set the GUI look and feel to match the system's native style
                 UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
             } catch (Exception e) {
-                e.printStackTrace();
+                e.printStackTrace(); // Log any errors in setting the look and feel
             }
+
+            // Instantiate the visualizer window
             new MazeSolverVisualizer();
         });
     }
 }
-
-
 
 
 
