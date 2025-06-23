@@ -140,9 +140,7 @@ These metrics allow comparison between the different solving strategies.
 ## 🎬 Demonstration Video
 
 > A detailed walkthrough and live demo of the project is available below:
-
-[🔗 [**Click here to watch the video**](https://your-video-link-here.com)
-](https://github.com/user-attachments/assets/1a8f477d-0722-4fb6-a354-6827fe85efe6)
+https://github.com/user-attachments/assets/1a8f477d-0722-4fb6-a354-6827fe85efe6
 ---
 
 
