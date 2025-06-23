@@ -142,6 +142,8 @@ You can watch the demonstration video of the maze-solving algorithms here:
 
 🔗 [Watch Video](https://github.com/user-attachments/assets/1a8f477d-0722-4fb6-a354-6827fe85efe6)
 
+https://github.com/user-attachments/assets/1a8f477d-0722-4fb6-a354-6827fe85efe6
+
 ---
 
 
