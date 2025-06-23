@@ -136,11 +136,12 @@ These metrics allow comparison between the different solving strategies.
 
 
 ---
+## 🎥 Project Demonstration
 
-## 🎬 Demonstration Video
+You can watch the demonstration video of the maze-solving algorithms here:
 
-> A detailed walkthrough and live demo of the project is available below:
-https://github.com/user-attachments/assets/1a8f477d-0722-4fb6-a354-6827fe85efe6
+🔗 [Watch Video](https://github.com/user-attachments/assets/1a8f477d-0722-4fb6-a354-6827fe85efe6)
+
 ---
 
 
